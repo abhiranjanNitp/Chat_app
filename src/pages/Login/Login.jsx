@@ -9,14 +9,21 @@ const Login = () => {
     const [userName, setUserName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false)
 
-    const onSubmitHandler = (event) => {
+    const onSubmitHandler = async (event) => {
         event.preventDefault();
-        if (currState === "Sign up") {
-            signup(userName, email, password);
-        } else {
-            login(email, password);
+        setLoading(true);
+        try {
+            if (currState === "Sign up") {
+                await signup(userName, email, password);
+            } else {
+                await login(email, password);
+            }
+        } catch (err) {
+            // error handled in firebase.js
         }
+        setLoading(false);
     }
 
     return (
@@ -27,7 +34,13 @@ const Login = () => {
                 {currState === "Sign up" ? <input onChange={(e) => setUserName(e.target.value)} value={userName} className='form-input' type="text" placeholder='username' required /> : null}
                 <input onChange={(e) => setEmail(e.target.value)} value={email} className='form-input' type="email" placeholder='Email address' required />
                 <input onChange={(e) => setPassword(e.target.value)} value={password} className='form-input' type="password" placeholder='password' required />
-                <button type='submit'>{currState === "Sign up" ? "Create account" : "Login now"}</button>
+                <button type='submit' disabled={loading} style={{ opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}>
+                    {loading ? (
+                        <span>Loading...</span>
+                    ) : (
+                        currState === "Sign up" ? "Create account" : "Login now"
+                    )}
+                </button>
                 <div className='login-term'>
                     <input type="checkbox" />
                     <p>Agree to the terms of use & privacy policy.</p>

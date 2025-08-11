@@ -18,12 +18,16 @@ const ProfileUpdate = () => {
     const navigate = useNavigate();
     const [prevImage, setPrevImage] = useState("");
     const { setUserData } = useContext(AppContext);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
 
     const profileUpdate = async (event) => {
         event.preventDefault();
+        setSaving(true);
         try {
             if (!prevImage && !image) {
                 toast.error("Upload profile picture")
+                setSaving(false);
                 return 0;
             }
             const docRef = doc(db, "users", uid);
@@ -48,7 +52,7 @@ const ProfileUpdate = () => {
             console.error(error);
             toast.error(error.message)
         }
-
+        setSaving(false);
     }
 
     useEffect(() => {
@@ -66,6 +70,7 @@ const ProfileUpdate = () => {
                 if (docSnap.data().avatar) {
                     setPrevImage(docSnap.data().avatar);
                 }
+                setLoading(false);
             }
             else {
                 navigate("/")
@@ -76,18 +81,26 @@ const ProfileUpdate = () => {
     return (
         <div className='profile'>
             <div className="profile-container">
-                <form onSubmit={profileUpdate}>
-                    <h3>Profile details</h3>
-                    <label htmlFor='avatar'>
-                        <input onChange={(e) => setImage(e.target.files[0])} id='avatar' type="file" accept=".png, .jpg, .jpeg" hidden />
-                        <img src={image ? URL.createObjectURL(image) : assets.avatar_icon} alt="" />
-                        upload profile image
-                    </label>
-                    <input onChange={(e) => setName(e.target.value)} value={name} placeholder='Your name' type="text" required />
-                    <textarea onChange={(e) => setBio(e.target.value)} value={bio} placeholder='Write profile bio' required />
-                    <button type="submit">Save</button>
-                </form>
-                <img className='profile-pic' src={image ? URL.createObjectURL(image) : prevImage ? prevImage : assets.logo_icon} alt="" />
+                {loading ? (
+                    <div className="profile-loading">Loading...</div>
+                ) : (
+                    <>
+                        <form onSubmit={profileUpdate}>
+                            <h3>Profile details</h3>
+                            <label htmlFor='avatar'>
+                                <input onChange={(e) => setImage(e.target.files[0])} id='avatar' type="file" accept=".png, .jpg, .jpeg" hidden />
+                                <img src={image ? URL.createObjectURL(image) : assets.avatar_icon} alt="" />
+                                upload profile image
+                            </label>
+                            <input onChange={(e) => setName(e.target.value)} value={name} placeholder='Your name' type="text" required />
+                            <textarea onChange={(e) => setBio(e.target.value)} value={bio} placeholder='Write profile bio' required />
+                            <button type="submit" disabled={saving} style={{ opacity: saving ? 0.7 : 1, cursor: saving ? 'not-allowed' : 'pointer' }}>
+                                {saving ? 'Saving...' : 'Save'}
+                            </button>
+                        </form>
+                        <img className='profile-pic' src={image ? URL.createObjectURL(image) : prevImage ? prevImage : assets.logo_icon} alt="" />
+                    </>
+                )}
             </div>
         </div>
     )
